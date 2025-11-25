@@ -4,7 +4,10 @@
   <head>
     <meta charset="UTF-8" />
     <title><%= siteTitle || "My Secret" %></title>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
     <link
       rel="icon"
       href="<%= logoUrl || '/images/logo.png' %>"
@@ -113,6 +116,54 @@
 
     <script>
       (function () {
+        // ====== FIX CHIỀU CAO MOBILE 1 MÀN HÌNH + GIỐNG APP NATIVE ======
+        var initialViewportHeight = null;
+
+        function updateVh() {
+          var rawH;
+
+          if (window.visualViewport) {
+            // chiều cao vùng hiển thị thực tế (đã trừ bàn phím)
+            rawH = window.visualViewport.height;
+          } else {
+            rawH = window.innerHeight;
+          }
+
+          if (!initialViewportHeight) {
+            initialViewportHeight = rawH;
+          }
+
+          var effectiveH = rawH;
+          var diff = initialViewportHeight - rawH;
+
+          // nếu chênh lệch lớn -> khả năng rất cao là bàn phím đang mở
+          if (diff > 120) {
+            // Keyboard OPEN
+            document.body.classList.add("keyboard-open");
+
+            // trừ thêm chút để "giả lập" header URL của trình duyệt -> nhìn gọn như app
+            effectiveH = rawH - 40;
+            if (effectiveH < 300) {
+              // tránh trường hợp quá nhỏ
+              effectiveH = rawH - 20;
+            }
+          } else {
+            // Keyboard CLOSED
+            document.body.classList.remove("keyboard-open");
+          }
+
+          var vh = effectiveH * 0.01;
+          document.documentElement.style.setProperty("--vh", vh + "px");
+        }
+
+        updateVh();
+
+        window.addEventListener("resize", updateVh);
+        window.addEventListener("orientationchange", updateVh);
+        if (window.visualViewport) {
+          window.visualViewport.addEventListener("resize", updateVh);
+        }
+
         // ===== LẤY DATA USER / PEER TỪ DOM =====
         var dataEl = document.getElementById("chat-data");
         var CURRENT_USER = null;
@@ -308,6 +359,11 @@
         window.addEventListener("resize", function () {
           setTimeout(scrollToBottom, 250);
         });
+        if (window.visualViewport) {
+          window.visualViewport.addEventListener("resize", function () {
+            setTimeout(scrollToBottom, 250);
+          });
+        }
 
         function showPeerTyping(flag) {
           if (!typingEl) return;

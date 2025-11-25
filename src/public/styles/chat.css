@@ -258,3 +258,13 @@ body.chat-body {
     padding: 8px 12px;
   }
 }
+body.chat-body.keyboard-open .chat-shell {
+  /* bớt padding để khung chat nhìn gọn hơn, tránh bị kẹp giữa URL bar + keyboard */
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+body.chat-body.keyboard-open .chat-main {
+  /* giảm radius nhẹ cho cảm giác full-screen hơn */
+  border-radius: 12px;
+}
