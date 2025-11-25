@@ -84,7 +84,7 @@ app.use("/api", apiRoutes);
 module.exports = app;
 
 // ========== SOCKET.IO CHO LOCAL DEV ==========
-const PORT = process.env.PORT || 8080;
+const PORT =   "https://my-secret-nine.vercel.app";
 const server = http.createServer(app);
 initSocket(server, app);
 
