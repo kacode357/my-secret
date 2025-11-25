@@ -6,8 +6,9 @@ const cors = require("cors");
 const path = require("path");
 const cookieParser = require("cookie-parser");
 const session = require("express-session");
-const MongoStore = require("connect-mongo");
 const http = require("http");
+
+// Bỏ require("connect-mongo") vì bạn muốn dùng session RAM
 
 const connectDb = require("./config/database");
 const apiRoutes = require("./routes/api");
@@ -20,8 +21,7 @@ const app = express();
 app.locals.siteTitle = "My Secret"; // title cho tab trình duyệt
 app.locals.logoUrl = "/images/logo.png"; // đường dẫn logo / favicon
 
-// 🔹 GIỮ NGUYÊN STATIC Y CHANG CỦA MÀY
-// public ngoài root (../public)
+// static public (ở ngoài src)
 app.use(express.static(path.join(__dirname, "..", "public")));
 
 // ========== VIEW ENGINE ==========
@@ -29,31 +29,21 @@ app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "ejs");
 
 // ========== MIDDLEWARE CHUNG ==========
-app.use(cors());
+app.use(cors()); // Quay về CORS mặc định
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-// static files (css/js/img) TRONG src/public (nếu mày có)
-app.use(express.static(path.join(__dirname, "public")));
+// Nếu mày KHÔNG có thư mục src/public thì có thể bỏ dòng này đi
+// app.use(express.static(path.join(__dirname, "public")));
 
-// ========== SESSION CHO UI (THÊM MONGODB STORE) ==========
+// ========== SESSION CHO UI ==========
 app.use(
   session({
     secret: process.env.SESSION_SECRET || "dev-session-secret",
     resave: false,
     saveUninitialized: false,
-    store: MongoStore.create({
-      mongoUrl: process.env.MONGO_DB_URL,
-      dbName: process.env.MONGO_DB_NAME || undefined,
-      ttl: 7 * 24 * 60 * 60, // 7 ngày
-    }),
-    cookie: {
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 ngày
-      httpOnly: true,
-      sameSite: "lax",
-      secure: process.env.NODE_ENV === "production", // nếu dùng https ở prod thì true
-    },
+    cookie: {}, // Lưu ý: cookie rỗng nghĩa là lưu session trong RAM, tắt browser/restart server là mất
   })
 );
 
