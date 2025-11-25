@@ -84,16 +84,10 @@ app.use("/api", apiRoutes);
 module.exports = app;
 
 // ========== SOCKET.IO CHO LOCAL DEV ==========
-if (process.env.NODE_ENV !== "production") {
-  const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT || 8080;
+const server = http.createServer(app);
+initSocket(server, app);
 
-  const server = http.createServer(app);
-
-  initSocket(server, app);
-
-  server.listen(PORT, () => {
-    console.log(`🚀 Server đang chạy tại http://localhost:${PORT}`);
-    console.log(`🔑 UI Login: http://localhost:${PORT}/login`);
-    console.log(`🏠 UI Home:  http://localhost:${PORT}/home`);
-  });
-}
+server.listen(PORT, () => {
+  console.log(`🚀 Server đang chạy tại http://localhost:${PORT}`);
+});
