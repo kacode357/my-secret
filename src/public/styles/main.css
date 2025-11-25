@@ -32,6 +32,9 @@ a {
   --color-card: #ffffff;
   --color-border: #e5e7eb;
   --radius-lg: 16px;
+
+  /* 🔥 biến dùng cho chiều cao viewport thật trên mobile */
+  --vh: 1vh;
 }
 
 /* ========== BUTTON CHUNG ========== */
