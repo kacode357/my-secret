@@ -6,6 +6,7 @@ const cors = require("cors");
 const path = require("path");
 const cookieParser = require("cookie-parser");
 const session = require("express-session");
+const MongoStore = require("connect-mongo");
 const http = require("http");
 
 const connectDb = require("./config/database");
@@ -19,7 +20,8 @@ const app = express();
 app.locals.siteTitle = "My Secret"; // title cho tab trình duyệt
 app.locals.logoUrl = "/images/logo.png"; // đường dẫn logo / favicon
 
-// static public (ở ngoài src)
+// 🔹 GIỮ NGUYÊN STATIC Y CHANG CỦA MÀY
+// public ngoài root (../public)
 app.use(express.static(path.join(__dirname, "..", "public")));
 
 // ========== VIEW ENGINE ==========
@@ -32,16 +34,26 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-// Nếu mày KHÔNG có thư mục src/public thì có thể bỏ dòng này đi
-// app.use(express.static(path.join(__dirname, "public")));
+// static files (css/js/img) TRONG src/public (nếu mày có)
+app.use(express.static(path.join(__dirname, "public")));
 
-// ========== SESSION CHO UI ==========
+// ========== SESSION CHO UI (THÊM MONGODB STORE) ==========
 app.use(
   session({
     secret: process.env.SESSION_SECRET || "dev-session-secret",
     resave: false,
     saveUninitialized: false,
-    cookie: {}, // tắt browser là mất
+    store: MongoStore.create({
+      mongoUrl: process.env.MONGO_DB_URL,
+      dbName: process.env.MONGO_DB_NAME || undefined,
+      ttl: 7 * 24 * 60 * 60, // 7 ngày
+    }),
+    cookie: {
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 ngày
+      httpOnly: true,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production", // nếu dùng https ở prod thì true
+    },
   })
 );
 
