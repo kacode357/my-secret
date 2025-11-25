@@ -20,24 +20,33 @@ const app = express();
 app.locals.siteTitle = "My Secret"; // title cho tab trình duyệt
 app.locals.logoUrl = "/images/logo.png"; // đường dẫn logo / favicon
 
-// 🔹 GIỮ NGUYÊN STATIC Y CHANG CỦA MÀY
+// ========== STATIC FILES ==========
 // public ngoài root (../public)
 app.use(express.static(path.join(__dirname, "..", "public")));
+// static files (css/js/img) TRONG src/public (nếu mày có)
+app.use(express.static(path.join(__dirname, "public")));
 
 // ========== VIEW ENGINE ==========
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "ejs");
 
 // ========== MIDDLEWARE CHUNG ==========
-app.use(cors());
+app.use(
+  cors({
+    origin: [
+      process.env.BASE_URL, // chính app của mày (Render / local)
+      "http://localhost:8080",
+      "http://localhost:3000",
+    ].filter(Boolean),
+    credentials: true,
+  })
+);
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-// static files (css/js/img) TRONG src/public (nếu mày có)
-app.use(express.static(path.join(__dirname, "public")));
-
-// ========== SESSION CHO UI (THÊM MONGODB STORE) ==========
+// ========== SESSION CHO UI (MONGODB STORE) ==========
 app.use(
   session({
     secret: process.env.SESSION_SECRET || "dev-session-secret",
@@ -52,7 +61,7 @@ app.use(
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 ngày
       httpOnly: true,
       sameSite: "lax",
-      secure: process.env.NODE_ENV === "production", // nếu dùng https ở prod thì true
+      secure: process.env.NODE_ENV === "production", // Render dùng https
     },
   })
 );
@@ -80,20 +89,25 @@ app.use(async (req, res, next) => {
 app.use("/", uiRoutes);
 app.use("/api", apiRoutes);
 
-// ========== EXPORT CHO VERCEL / PRODUCTION ==========
+// ========== EXPORT APP ==========
 module.exports = app;
 
-// ========== SOCKET.IO CHO LOCAL DEV ==========
-if (process.env.NODE_ENV !== "production") {
-  const PORT = process.env.PORT || 8080;
+// ========== TẠO HTTP SERVER + SOCKET.IO ==========
+if (require.main === module) {
+  const PORT = process.env.PORT || 8080; // Render tự set PORT
 
   const server = http.createServer(app);
 
+  // attach socket.io
   initSocket(server, app);
 
   server.listen(PORT, () => {
-    console.log(`🚀 Server đang chạy tại http://localhost:${PORT}`);
-    console.log(`🔑 UI Login: http://localhost:${PORT}/login`);
-    console.log(`🏠 UI Home:  http://localhost:${PORT}/home`);
+    console.log(`🚀 Server đang chạy tại port ${PORT}`);
+    if (process.env.NODE_ENV === "development") {
+      console.log(`🔑 UI Login: http://localhost:${PORT}/login`);
+      console.log(`🏠 UI Home:  http://localhost:${PORT}/home`);
+    } else {
+      console.log(`🌐 BASE_URL: ${process.env.BASE_URL}`);
+    }
   });
 }
