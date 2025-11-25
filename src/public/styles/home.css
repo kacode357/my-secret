@@ -1,0 +1,252 @@
+/* File: public/styles/home.css */
+
+/* Nền app home */
+body {
+  background: var(--color-bg);
+}
+
+/* Layout chính */
+.container {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+/* Header */
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Avatar ở header */
+.user-info .avatar {
+  width: 40px;
+  height: 40px;
+}
+
+/* Nút logout riêng (nhẹ, border) */
+.btn-logout {
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  box-shadow: none;
+}
+
+.btn-logout:hover {
+  background: #f3f4f6;
+}
+
+/* Grid layout */
+.grid {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 24px;
+}
+
+/* Card */
+.card {
+  background: var(--color-card);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.06);
+}
+
+.card h2 {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+/* Friends list */
+.friends-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 420px;
+  overflow-y: auto;
+}
+
+.friend-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 10px;
+  border-radius: 999px;
+  transition: background 0.15s ease;
+}
+
+.friend-item:hover {
+  background: #e5e7eb;
+}
+
+.friend-main {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* avatar friend */
+.friend-main .avatar {
+  width: 32px;
+  height: 32px;
+}
+
+.friend-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.friend-name {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.friend-username {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+/* Friend code box */
+.code-box {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.code-value {
+  font-family: ui-monospace, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-weight: 700;
+  padding: 6px 10px;
+  background: #111827;
+  color: #f9fafb;
+  border-radius: 8px;
+  font-size: 14px;
+  min-width: 80px;
+  text-align: center;
+}
+
+/* Form chung trong home */
+.form-group {
+  margin-bottom: 10px;
+}
+
+.input {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 999px;
+  border: 1px solid #d1d5db;
+  outline: none;
+  font-size: 14px;
+}
+
+.input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-primary-soft);
+}
+
+.inline-form {
+  display: flex;
+  gap: 8px;
+}
+
+/* Requests list */
+.requests-list {
+  margin-top: 12px;
+  max-height: 220px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.request-item {
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: #f9fafb;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.request-main {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* avatar trong request */
+.request-main .avatar {
+  width: 28px;
+  height: 28px;
+}
+
+.actions {
+  display: flex;
+  gap: 6px;
+}
+
+a.btn-link {
+  text-decoration: none;
+  display: inline-block;
+}
+
+/* --------- RESPONSIVE --------- */
+
+/* Tablet & mobile */
+@media (max-width: 768px) {
+  .container {
+    padding: 12px;
+  }
+
+  /* Header vẫn nằm 1 hàng, nút logout sát mép phải */
+  header {
+    gap: 12px;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* 🔥 Đảo thứ tự: card Kết bạn lên trên, bạn bè xuống dưới */
+  .home-card-add {
+    order: 1;
+  }
+
+  .home-card-friends {
+    order: 2;
+  }
+
+  .card {
+    margin-bottom: 12px;
+  }
+}
+
+/* Mobile nhỏ */
+@media (max-width: 480px) {
+  .card {
+    padding: 14px;
+  }
+
+  .friends-list,
+  .requests-list {
+    max-height: none;
+  }
+
+  .friend-item {
+    padding: 8px 8px;
+  }
+
+  .btn-logout {
+    padding: 6px 14px;
+    font-size: 13px;
+  }
+}

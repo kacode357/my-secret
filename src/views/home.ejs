@@ -1,0 +1,285 @@
+<!-- File: src/views/home.ejs -->
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <title>My Secret</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="/images/logo.png" type="image/png" />
+    <link rel="stylesheet" href="/styles/main.css" />
+    <link rel="stylesheet" href="/styles/home.css" />
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <div class="user-info">
+          <div class="avatar">
+            <% if (user && user.avatarUrl) { %>
+              <img src="<%= user.avatarUrl %>" alt="<%= user.displayName %>" />
+            <% } else { %>
+              <span><%= user && user.displayName ? user.displayName[0].toUpperCase() : "U" %></span>
+            <% } %>
+          </div>
+          <div>
+            <div style="font-weight: 600">
+              <%= user ? user.displayName : "User" %>
+            </div>
+            <div class="muted">
+              @<%= user ? user.username : "unknown" %>
+            </div>
+          </div>
+        </div>
+
+        <form action="/logout" method="post">
+          <button type="submit" class="btn btn-secondary btn-logout">
+            Đăng xuất
+          </button>
+        </form>
+      </header>
+
+      <div class="grid">
+        <!-- KẾT BẠN (trên mobile sẽ nằm trên) -->
+        <section class="card home-card-add">
+          <h2>Kết bạn</h2>
+
+          <% if (flash) { %>
+            <div class="alert <%= flash.type === 'error' ? 'alert-error' : 'alert-success' %>">
+              <%= flash.message %>
+            </div>
+          <% } %>
+
+          <!-- MÃ KẾT BẠN CỦA MÌNH -->
+          <div style="margin-bottom: 16px; margin-top: 8px;">
+            <div class="form-group">
+              <label class="muted">Mã kết bạn của bạn:</label>
+              <div class="code-box">
+                <span class="code-value">
+                  <%= myFriendCode && myFriendCode.code ? myFriendCode.code : "------" %>
+                </span>
+                <form method="POST" action="/home/friend-code">
+                  <button class="btn btn-secondary" type="submit">
+                    Tạo mã mới
+                  </button>
+                </form>
+              </div>
+              <div class="muted">
+                <% if (myFriendCode && myFriendCode.expiresAt) { %>
+                  Hết hạn lúc:
+                  <%= new Date(myFriendCode.expiresAt).toLocaleString() %>
+                <% } else { %>
+                  Chưa tạo mã nào.
+                <% } %>
+              </div>
+            </div>
+          </div>
+
+          <!-- NHẬP MÃ KẾT BẠN -->
+          <div style="margin-bottom: 16px">
+            <div class="form-group">
+              <label class="muted">Nhập mã bạn bè gửi cho bạn:</label>
+              <form class="inline-form" method="POST" action="/home/friend-submit">
+                <input
+                  class="input"
+                  type="text"
+                  name="code"
+                  placeholder="VD: A1B2C3"
+                  maxlength="10"
+                  required
+                />
+                <button class="btn btn-primary" type="submit">
+                  Gửi yêu cầu
+                </button>
+              </form>
+            </div>
+          </div>
+
+          <!-- LIST YÊU CẦU CHỜ DUYỆT -->
+          <div>
+            <div
+              style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;"
+            >
+              <span class="muted">Yêu cầu đang chờ bạn duyệt:</span>
+            </div>
+
+            <div class="requests-list">
+              <% if (pendingRequests && pendingRequests.length > 0) { %>
+                <% pendingRequests.forEach(function(req) { %>
+                  <div class="request-item">
+                    <div class="request-main">
+                      <div class="avatar">
+                        <span>
+                          <%= req.requester && req.requester.displayName
+                                ? req.requester.displayName[0].toUpperCase()
+                                : "U" %>
+                        </span>
+                      </div>
+                      <div>
+                        <div style="font-size: 13px; font-weight: 600;">
+                          <%= req.requester && req.requester.displayName
+                                ? req.requester.displayName
+                                : "Người dùng ẩn danh" %>
+                        </div>
+                        <div class="muted">
+                          <%= req.requester && req.requester.username
+                                ? "@" + req.requester.username
+                                : "" %>
+                        </div>
+                      </div>
+                      <span class="tag">code: <%= req.code %></span>
+                    </div>
+                    <div class="actions">
+                      <form
+                        method="POST"
+                        action="/home/friend-requests/<%= req.requestId %>/respond"
+                        style="display:inline"
+                      >
+                        <input type="hidden" name="accept" value="true" />
+                        <button
+                          type="submit"
+                          class="btn btn-primary"
+                          style="padding: 4px 10px; font-size: 12px;"
+                        >
+                          Đồng ý
+                        </button>
+                      </form>
+                      <form
+                        method="POST"
+                        action="/home/friend-requests/<%= req.requestId %>/respond"
+                        style="display:inline"
+                      >
+                        <input type="hidden" name="accept" value="false" />
+                        <button
+                          type="submit"
+                          class="btn btn-secondary"
+                          style="padding: 4px 10px; font-size: 12px;"
+                        >
+                          Từ chối
+                        </button>
+                      </form>
+                    </div>
+                  </div>
+                <% }); %>
+              <% } else { %>
+                <span class="muted">Không có yêu cầu nào.</span>
+              <% } %>
+            </div>
+          </div>
+        </section>
+
+        <!-- DANH SÁCH BẠN BÈ (trên mobile sẽ xuống dưới) -->
+        <section class="card home-card-friends">
+          <h2>Danh sách bạn bè</h2>
+          <p class="muted" style="margin-bottom: 10px">
+            Chọn 1 người để mở chat.
+          </p>
+
+          <div class="friends-list">
+            <% if (friends && friends.length > 0) { %>
+              <% friends.forEach(function(friend) { %>
+                <div class="friend-item" data-username="<%= friend.username %>">
+                  <div class="friend-main">
+                    <div class="avatar">
+                      <% if (friend.avatarUrl) { %>
+                        <img src="<%= friend.avatarUrl %>" alt="<%= friend.displayName %>" />
+                      <% } else { %>
+                        <span><%= friend.displayName ? friend.displayName[0].toUpperCase() : "F" %></span>
+                      <% } %>
+                    </div>
+                    <div class="friend-text">
+                      <span class="friend-name"><%= friend.displayName %></span>
+                      <span class="friend-username">@<%= friend.username %></span>
+                    </div>
+                    <span
+                      class="status-dot status-<%= friend.status || 'offline' %>"
+                      title="<%= friend.status || 'offline' %>"
+                    ></span>
+                  </div>
+
+                  <!-- URL chat ẩn username bằng key -->
+                  <a
+                    class="btn btn-primary btn-link"
+                    href="<%= chatKeys && chatKeys[friend.username] ? '/chat?key=' + chatKeys[friend.username] : '/home' %>"
+                  >
+                    Chat
+                  </a>
+                </div>
+              <% }); %>
+            <% } else { %>
+              <p class="muted">Chưa có bạn bè nào.</p>
+            <% } %>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <!-- DATA ẨN ĐỂ JS ĐỌC, TRÁNH EJS CHÈN TRỰC TIẾP VÀO JS -->
+    <div
+      id="home-data"
+      data-current-user='<%- JSON.stringify(user || {}) %>'
+    ></div>
+
+    <!-- SOCKET.IO -->
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+      (function () {
+        var dataEl = document.getElementById("home-data");
+        var CURRENT_USER = null;
+
+        if (dataEl && dataEl.dataset.currentUser) {
+          try {
+            CURRENT_USER = JSON.parse(dataEl.dataset.currentUser);
+          } catch (e) {
+            CURRENT_USER = null;
+          }
+        }
+
+        function updateFriendPresence(username, status) {
+          if (!username) return;
+          var selector = '.friend-item[data-username="' + username + '"]';
+          var item = document.querySelector(selector);
+          if (!item) return;
+
+          var dot = item.querySelector(".status-dot");
+          if (!dot) return;
+
+          dot.classList.remove(
+            "status-online",
+            "status-offline",
+            "status-busy",
+            "status-away"
+          );
+          var st = status || "offline";
+          dot.classList.add("status-" + st);
+          dot.title = st;
+        }
+
+        if (CURRENT_USER && CURRENT_USER.username) {
+          var socket = io();
+
+          socket.on("connect", function () {
+            socket.emit("auth:identify", { username: CURRENT_USER.username });
+          });
+
+          // Realtime friend request
+          socket.on("friend:newRequest", function () {
+            window.location.reload();
+          });
+
+          socket.on("friend:updateList", function () {
+            window.location.reload();
+          });
+
+          socket.on("friend:accepted", function () {
+            window.location.reload();
+          });
+
+          // Realtime presence
+          socket.on("presence:update", function (payload) {
+            if (!payload || !payload.username) return;
+            updateFriendPresence(payload.username, payload.status);
+          });
+        }
+      })();
+    </script>
+  </body>
+</html>

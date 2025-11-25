@@ -1,0 +1,55 @@
+<!-- File: src/views/login.ejs -->
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <title>My Secret</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="/images/logo.png" type="image/png" />
+    <link rel="stylesheet" href="/styles/main.css" />
+    <link rel="stylesheet" href="/styles/login.css" />
+  </head>
+  <body class="login-body">
+    <div class="login-card">
+      <h1 class="login-title">Đăng nhập</h1>
+
+      <% if (error) { %>
+        <div class="login-error"><%= error %></div>
+      <% } %>
+
+      <form method="POST" action="/login">
+        <div class="login-field">
+          <label class="login-label" for="identifier">Username hoặc Email</label>
+          <input
+            class="login-input"
+            type="text"
+            id="identifier"
+            name="identifier"
+            placeholder="username hoặc email"
+            required
+          />
+        </div>
+
+        <div class="login-field">
+          <label class="login-label" for="password">Mật khẩu</label>
+          <input
+            class="login-input"
+            type="password"
+            id="password"
+            name="password"
+            placeholder="••••••"
+            required
+          />
+        </div>
+
+        <button
+          type="submit"
+          class="btn btn-primary btn-block"
+          style="margin-top: 6px;"
+        >
+          Đăng nhập
+        </button>
+      </form>
+    </div>
+  </body>
+</html>

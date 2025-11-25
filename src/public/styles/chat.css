@@ -1,0 +1,221 @@
+/* File: public/styles/chat.css */
+
+body {
+  background: var(--color-bg);
+  color: #111827;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Shell chat bao toàn bộ header + khung trắng */
+.chat-shell {
+  width: 100%;
+  max-width: 1100px;        /* 🔥 nới rộng khung trên desktop */
+  margin: 0 auto;
+  padding: 10px 14px;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header chat */
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0 12px;
+}
+
+.back-link {
+  border: none;
+  background: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  color: #4b5563;
+  font-size: 14px;
+}
+
+.back-link span:first-child {
+  font-size: 20px;
+  line-height: 0;
+}
+
+/* Peer info */
+.peer-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* avatar của peer */
+.peer-info .avatar {
+  width: 36px;
+  height: 36px;
+}
+
+.peer-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.peer-name {
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.peer-username {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+/* Khung chat trắng */
+.chat-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: #ffffff;
+  border-radius: var(--radius-lg);
+  padding: 10px;
+  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.06);
+}
+
+/* Vùng messages */
+.messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 6px 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* Bubble */
+.bubble-row {
+  display: flex;
+  margin-bottom: 2px;
+}
+
+.bubble-row.me {
+  justify-content: flex-end;
+}
+
+.bubble {
+  max-width: 70%;
+  padding: 8px 10px;
+  border-radius: 16px;
+  font-size: 14px;
+  line-height: 1.4;
+  word-wrap: break-word;
+  white-space: pre-wrap;
+}
+
+.bubble.me {
+  background: var(--color-primary);
+  color: #f9fafb;
+  border-bottom-right-radius: 4px;
+}
+
+.bubble.other {
+  background: #e5e7eb;
+  color: #111827;
+  border-bottom-left-radius: 4px;
+}
+
+/* Meta time */
+.msg-meta {
+  font-size: 11px;
+  color: #9ca3af;
+  margin-top: 2px;
+}
+
+.msg-meta.me {
+  text-align: right;
+  margin-right: 6px;
+}
+
+.msg-meta.other {
+  text-align: left;
+  margin-left: 6px;
+}
+
+/* Input row */
+.input-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-top: 4px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.input {
+  flex: 1;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid #d1d5db;
+  outline: none;
+  font-size: 14px;
+}
+
+.input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-primary-soft);
+}
+
+/* Nút emoji lấy từ thư viện Emoji Button */
+.emoji-toggle-btn {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 20px;
+  line-height: 1;
+  padding: 4px 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* --------- RESPONSIVE --------- */
+
+/* Tablet: thu padding lại chút */
+@media (max-width: 1024px) {
+  .chat-shell {
+    max-width: 768px;
+    padding: 8px;
+  }
+
+  .chat-main {
+    padding: 8px;
+  }
+
+  .bubble {
+    max-width: 80%;
+  }
+}
+
+/* Mobile */
+@media (max-width: 640px) {
+  .chat-shell {
+    max-width: 100%;
+  padding: 6px;
+  }
+
+  header {
+    padding: 4px 0 8px;
+  }
+
+  .chat-main {
+    padding: 8px 6px;
+  }
+
+  .input-row {
+    gap: 6px;
+  }
+
+  .btn-primary {
+    padding: 8px 12px;
+  }
+}
