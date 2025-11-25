@@ -16,12 +16,12 @@ const initSocket = require("./realtime/socket");
 
 const app = express();
 
-// ========== GLOBAL CONFIG CHO VIEW ==========
-app.locals.siteTitle = "My Secret";
-app.locals.logoUrl = "/images/logo.png";
+// --- CONFIG GLOBAL CHO VIEW ---
+app.locals.siteTitle = "My Secret"; // title cho tab trình duyệt
+app.locals.logoUrl = "/images/logo.png"; // đường dẫn logo / favicon
 
-// ========== STATIC FILES ==========
-// public nằm ở root project: /public
+// 🔹 GIỮ NGUYÊN STATIC Y CHANG CỦA MÀY
+// public ngoài root (../public)
 app.use(express.static(path.join(__dirname, "..", "public")));
 
 // ========== VIEW ENGINE ==========
@@ -29,18 +29,15 @@ app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "ejs");
 
 // ========== MIDDLEWARE CHUNG ==========
-app.use(
-  cors({
-    origin: process.env.BASE_URL || "*",
-    credentials: true,
-  })
-);
+app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-// ========== SESSION CHO UI (DÙNG MONGODB STORE) ==========
-// Quan trọng để khi deploy nhiều instance / serverless không bị mất session
+// static files (css/js/img) TRONG src/public (nếu mày có)
+app.use(express.static(path.join(__dirname, "public")));
+
+// ========== SESSION CHO UI (THÊM MONGODB STORE) ==========
 app.use(
   session({
     secret: process.env.SESSION_SECRET || "dev-session-secret",
@@ -48,7 +45,7 @@ app.use(
     saveUninitialized: false,
     store: MongoStore.create({
       mongoUrl: process.env.MONGO_DB_URL,
-      dbName: process.env.MONGO_DB_NAME || undefined, // nếu connection string không ghi db thì set biến này
+      dbName: process.env.MONGO_DB_NAME || undefined,
       ttl: 7 * 24 * 60 * 60, // 7 ngày
     }),
     cookie: {
@@ -60,17 +57,13 @@ app.use(
   })
 );
 
-// ========== KẾT NỐI DATABASE (MIDDLEWARE) ==========
-// connectDb bên trong nên tự cache / reuse connection.
-// Middleware này đảm bảo mỗi request đều gọi connectDb()
-// nhưng nếu đã connect rồi thì không connect lại nữa.
+// ========== KẾT NỐI DATABASE ==========
 app.use(async (req, res, next) => {
   try {
     await connectDb();
     next();
   } catch (error) {
     console.error(">>> LỖI KẾT NỐI DATABASE:", error);
-
     if (req.path.startsWith("/api")) {
       return res.status(503).json({
         message: "Service Unavailable: Không thể kết nối tới database.",
@@ -87,16 +80,15 @@ app.use(async (req, res, next) => {
 app.use("/", uiRoutes);
 app.use("/api", apiRoutes);
 
-// ========== EXPORT CHO VERCEL / SERVERLESS ==========
+// ========== EXPORT CHO VERCEL / PRODUCTION ==========
 module.exports = app;
 
-// ========== SOCKET.IO + HTTP SERVER CHO LOCAL DEV ==========
+// ========== SOCKET.IO CHO LOCAL DEV ==========
 if (process.env.NODE_ENV !== "production") {
   const PORT = process.env.PORT || 8080;
 
   const server = http.createServer(app);
 
-  // Khởi tạo socket.io
   initSocket(server, app);
 
   server.listen(PORT, () => {
