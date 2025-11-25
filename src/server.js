@@ -6,9 +6,8 @@ const cors = require("cors");
 const path = require("path");
 const cookieParser = require("cookie-parser");
 const session = require("express-session");
+const MongoStore = require("connect-mongo");
 const http = require("http");
-
-// Bỏ require("connect-mongo") vì bạn muốn dùng session RAM
 
 const connectDb = require("./config/database");
 const apiRoutes = require("./routes/api");
@@ -17,11 +16,18 @@ const initSocket = require("./realtime/socket");
 
 const app = express();
 
+const isProd = process.env.NODE_ENV === "production";
+
+// Nếu deploy trên Render (proxy HTTPS) thì cần cái này
+if (isProd) {
+  app.set("trust proxy", 1);
+}
+
 // --- CONFIG GLOBAL CHO VIEW ---
 app.locals.siteTitle = "My Secret"; // title cho tab trình duyệt
 app.locals.logoUrl = "/images/logo.png"; // đường dẫn logo / favicon
 
-// static public (ở ngoài src)
+// 🔹 STATIC ngoài root (../public)
 app.use(express.static(path.join(__dirname, "..", "public")));
 
 // ========== VIEW ENGINE ==========
@@ -29,21 +35,32 @@ app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "ejs");
 
 // ========== MIDDLEWARE CHUNG ==========
-app.use(cors()); // Quay về CORS mặc định
+app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-// Nếu mày KHÔNG có thư mục src/public thì có thể bỏ dòng này đi
-// app.use(express.static(path.join(__dirname, "public")));
+// static files (css/js/img) TRONG src/public (nếu mày có)
+app.use(express.static(path.join(__dirname, "public")));
 
-// ========== SESSION CHO UI ==========
+// ========== SESSION CHO UI (MONGODB STORE) ==========
 app.use(
   session({
     secret: process.env.SESSION_SECRET || "dev-session-secret",
     resave: false,
     saveUninitialized: false,
-    cookie: {}, // Lưu ý: cookie rỗng nghĩa là lưu session trong RAM, tắt browser/restart server là mất
+    store: MongoStore.create({
+      mongoUrl: process.env.MONGO_DB_URL,
+      dbName: process.env.MONGO_DB_NAME || undefined,
+      ttl: 7 * 24 * 60 * 60, // 7 ngày
+    }),
+    cookie: {
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 ngày
+      httpOnly: true,
+      sameSite: isProd ? "lax" : "lax", 
+      // 🔥 Quan trọng: LOCAL sẽ là secure = false để cookie vẫn được set
+      secure: isProd, // chỉ bật secure khi NODE_ENV=production (https)
+    },
   })
 );
 
@@ -70,7 +87,7 @@ app.use(async (req, res, next) => {
 app.use("/", uiRoutes);
 app.use("/api", apiRoutes);
 
-// ========== TẠO HTTP SERVER + SOCKET.IO (CHO LOCAL + RENDER) ==========
+// ========== TẠO HTTP SERVER + SOCKET.IO ==========
 const PORT = process.env.PORT || 8080;
 
 const server = http.createServer(app);
@@ -78,12 +95,11 @@ const server = http.createServer(app);
 // khởi tạo socket.io, truyền server + app nếu trong initSocket có dùng app
 initSocket(server, app);
 
-// start server (Render và local đều dùng chung)
+// start server
 server.listen(PORT, () => {
   console.log(`🚀 Server đang chạy tại http://localhost:${PORT}`);
   console.log(`🔑 UI Login: http://localhost:${PORT}/login`);
   console.log(`🏠 UI Home:  http://localhost:${PORT}/home`);
 });
 
-// vẫn export app nếu sau này cần test hoặc dùng cho Vercel gì đó
 module.exports = app;
