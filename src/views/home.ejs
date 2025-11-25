@@ -46,7 +46,7 @@
         <section class="card home-card-add">
           <h2>Kết bạn</h2>
 
-          <!-- Nút bật thông báo (Cách 1) -->
+          <!-- Nút bật thông báo -->
           <div style="margin-top: 6px; margin-bottom: 10px;">
             <button
               type="button"
@@ -57,6 +57,28 @@
             </button>
             <div class="muted" style="margin-top: 4px;">
               Bật lên để nhận thông báo khi có tin nhắn mới.
+            </div>
+
+            <!-- 🔥 HINT RIÊNG CHO iPHONE / iPAD -->
+            <div
+              id="ios-hint"
+              class="alert"
+              style="
+                display: none;
+                margin-top: 8px;
+                background: #dbeafe;
+                color: #1d4ed8;
+              "
+            >
+              <strong>iPhone / iPad:</strong> Để nhận thông báo, hãy:
+              <ol style="margin-left: 18px; margin-top: 4px; font-size: 13px;">
+                <li>Mở trang này bằng <strong>Safari</strong>.</li>
+                <li>Bấm nút <strong>Chia sẻ</strong> (vuông + mũi tên lên).</li>
+                <li>Chọn <strong>Thêm vào Màn hình chính</strong>.</li>
+                <li>Mở app vừa thêm rồi bấm lại nút
+                  <strong>“Bật thông báo tin nhắn”</strong>.
+                </li>
+              </ol>
             </div>
           </div>
 
@@ -389,7 +411,7 @@
           });
         }
 
-        // ========== WEB PUSH: REGISTER SERVICE WORKER + SUBSCRIBE (CÁCH 1) ==========
+        // ========== WEB PUSH: REGISTER SERVICE WORKER + SUBSCRIBE ==========
 
         // SW register giữ lại ở đây để dùng lại
         var swRegistration = null;
@@ -408,6 +430,20 @@
             outputArray[i] = rawData.charCodeAt(i);
           }
           return outputArray;
+        }
+
+        // Detect iOS + chế độ standalone (PWA)
+        function isIOS() {
+          var ua = window.navigator.userAgent || "";
+          return /iPhone|iPad|iPod/i.test(ua);
+        }
+
+        function isStandaloneMode() {
+          // iOS cũ dùng navigator.standalone, PWA chuẩn dùng display-mode
+          var standaloneMedia =
+            window.matchMedia &&
+            window.matchMedia("(display-mode: standalone)").matches;
+          return standaloneMedia || window.navigator.standalone === true;
         }
 
         // Hàm subscribe & gửi subscription lên server
@@ -501,6 +537,18 @@
             return;
           }
 
+          // 🔥 Logic riêng cho iOS: nếu chưa chạy dạng PWA thì hướng dẫn
+          if (isIOS() && !isStandaloneMode()) {
+            alert(
+              "Trên iPhone/iPad, để nhận thông báo:\n\n" +
+              "1. Mở trang này bằng Safari.\n" +
+              "2. Bấm nút Chia sẻ (vuông + mũi tên lên).\n" +
+              "3. Chọn 'Thêm vào Màn hình chính'.\n" +
+              "4. Mở app vừa thêm rồi bấm lại nút 'Bật thông báo tin nhắn'."
+            );
+            return;
+          }
+
           // Nếu đã cho phép rồi
           if (Notification.permission === "granted") {
             alert("Bạn đã bật thông báo rồi.");
@@ -512,7 +560,7 @@
           // Nếu đã chặn trước đó
           if (Notification.permission === "denied") {
             alert(
-              "Bạn đã chặn thông báo. Hãy vào cài đặt trình duyệt để bật lại quyền thông báo cho trang này."
+              "Bạn đã chặn thông báo. Hãy vào cài đặt trình duyệt / hệ thống để bật lại quyền thông báo cho trang này."
             );
             return;
           }
@@ -564,6 +612,16 @@
         window.askNotificationPermissionManually =
           askNotificationPermissionManually;
         window.copyFriendCode = copyFriendCode;
+
+        // 🔥 Hiện hint iOS nếu cần
+        (function showIOSHintIfNeeded() {
+          if (isIOS() && !isStandaloneMode()) {
+            var hint = document.getElementById("ios-hint");
+            if (hint) {
+              hint.style.display = "block";
+            }
+          }
+        })();
 
         // Chỉ init push nếu đã login
         if (CURRENT_USER && CURRENT_USER.username) {

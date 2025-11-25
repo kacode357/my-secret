@@ -1,6 +1,6 @@
 /* File: public/styles/chat.css */
 
-/* Đảm bảo html/body full height để dùng 100vh ngon */
+/* Đảm bảo html/body full height */
 html,
 body {
   height: 100%;
@@ -14,14 +14,15 @@ body.chat-body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  overflow: hidden;           /* ❗ Không cho scroll toàn page */
+  /* ❌ bỏ overflow:hidden để mobile còn được đẩy layout khi mở bàn phím */
+  min-height: 100vh;             /* đủ cao như màn hình */
 }
 
-/* Shell chat: cao đúng 100vh, khung giữa màn hình */
+/* Shell chat: chiếm toàn bộ chiều cao còn lại, nhưng không khóa cứng 100vh */
 .chat-shell {
   width: 100%;
   max-width: 1100px;
-  height: 100vh;              /* ❗ KHÓA CỨNG chiều cao = viewport */
+  flex: 1 0 auto;                /* chiếm phần còn lại của body */
   padding: 10px 14px;
   display: flex;
   flex-direction: column;
@@ -169,7 +170,7 @@ body.chat-body {
   margin-left: 6px;
 }
 
-/* Input row cố định dưới cùng khung trắng */
+/* Input row cố định trong khung trắng (không fixed toàn màn hình) */
 .input-row {
   display: flex;
   align-items: center;

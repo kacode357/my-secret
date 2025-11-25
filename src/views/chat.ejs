@@ -73,7 +73,7 @@
           "
         ></div>
 
-        <!-- INPUT BAR CỐ ĐỊNH DƯỚI CÙNG -->
+        <!-- INPUT BAR CỐ ĐỊNH DƯỚI CÙNG TRONG KHUNG TRẮNG -->
         <form id="chat-form" class="input-row">
           <input
             id="message-input"
@@ -147,6 +147,12 @@
         var emojiToggleBtn = document.getElementById("emoji-toggle-btn");
         var typingEl = document.getElementById("typing-indicator");
 
+        // luôn kéo khung chat về cuối danh sách
+        function scrollToBottom() {
+          if (!messagesEl) return;
+          messagesEl.scrollTop = messagesEl.scrollHeight;
+        }
+
         // ===== COMMON UI FUNCS =====
         function showError(msg) {
           if (!alertEl) return;
@@ -187,7 +193,7 @@
           meta.textContent = formatTime(msg.at || msg.createdAt);
           messagesEl.appendChild(meta);
 
-          messagesEl.scrollTop = messagesEl.scrollHeight;
+          scrollToBottom();
         }
 
         function renderHistory(list) {
@@ -200,6 +206,7 @@
               at: m.at || m.createdAt,
             });
           });
+          scrollToBottom();
         }
 
         function updatePeerPresence(status) {
@@ -290,7 +297,17 @@
               emitTyping(false);
             }
           });
+
+          // Khi focus (mở bàn phím) thì đẩy về cuối
+          inputEl.addEventListener("focus", function () {
+            setTimeout(scrollToBottom, 250);
+          });
         }
+
+        // Khi resize (mở / đóng bàn phím, xoay màn hình) cũng kéo về cuối
+        window.addEventListener("resize", function () {
+          setTimeout(scrollToBottom, 250);
+        });
 
         function showPeerTyping(flag) {
           if (!typingEl) return;
@@ -410,8 +427,14 @@
               isTyping = false;
               emitTyping(false);
             }
+            scrollToBottom();
           });
         }
+
+        // Scroll xuống cuối ngay khi load xong (phòng khi history tới sau)
+        window.addEventListener("load", function () {
+          scrollToBottom();
+        });
       })();
     </script>
   </body>
