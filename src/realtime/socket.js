@@ -3,6 +3,8 @@ const { Server } = require("socket.io");
 const ChatRealtimeService = require("../services/chatRealtime.service");
 const FriendService = require("../services/friend.service");
 const UserService = require("../services/user.service");
+const PushSubscriptionService = require("../services/pushSubscription.service");
+const webPush = require("../config/webpush");
 
 /**
  * onlineUsers: Map<usernameLowerCase, Set<socketId>>
@@ -106,7 +108,65 @@ function initSocket(server, app) {
 
         console.log("📨 chat:send saved & broadcast:", payload);
 
+        // broadcast cho tất cả, client tự lọc
         io.emit("chat:receive", payload);
+
+        // ========== 🔔 WEB PUSH: gửi noti cho người nhận ==========
+        try {
+          const receiver = await UserService.getUserByUsername(
+            String(to).toLowerCase()
+          );
+          if (!receiver || !receiver._id) {
+            return;
+          }
+
+          const subs = await PushSubscriptionService.getSubscriptionsByUserId(
+            receiver._id
+          );
+
+          console.log(
+            "🔔 Found",
+            subs ? subs.length : 0,
+            "subscriptions for",
+            receiver.username
+          );
+
+          if (!subs || subs.length === 0) {
+            return;
+          }
+
+          const pushPayload = JSON.stringify({
+            title: `Tin nhắn mới từ ${from}`,
+            body: message,
+            url: "/home", // sau này nếu muốn có thể build URL chat riêng
+          });
+
+          for (const sub of subs) {
+            const pushSub = {
+              endpoint: sub.endpoint,
+              keys: sub.keys,
+            };
+
+            webPush
+              .sendNotification(pushSub, pushPayload)
+              .catch(async (err) => {
+                console.error(
+                  "❌ Lỗi sendNotification:",
+                  err.statusCode,
+                  err.body
+                );
+                // 410/404 = subscription hết hạn -> xoá khỏi DB
+                if (err.statusCode === 404 || err.statusCode === 410) {
+                  await PushSubscriptionService.removeSubscription({
+                    userId: receiver._id,
+                    endpoint: sub.endpoint,
+                  });
+                }
+              });
+          }
+        } catch (pushErr) {
+          console.error("❌ Lỗi Web Push chat:send:", pushErr);
+        }
       } catch (err) {
         console.error("❌ Lỗi lưu tin nhắn:", err.message);
         socket.emit("chat:error", { message: "Không gửi được tin nhắn" });
@@ -159,7 +219,7 @@ function initSocket(server, app) {
       }
     });
 
-    // ========== FRIEND REQUEST (tuỳ mày dùng hay không) ==========
+    // ========== FRIEND REQUEST ==========
     socket.on("friend:getPending", async (data, cb) => {
       const username = socket.data.username;
       if (!username) {

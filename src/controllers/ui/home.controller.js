@@ -2,6 +2,7 @@
 const crypto = require("crypto");
 const UserService = require("../../services/user.service");
 const FriendService = require("../../services/friend.service");
+const UnreadService = require("../../services/unread.service"); 
 
 async function buildHomeData(req) {
   const friends = await UserService.getFriendsOfUser(req.user._id);
@@ -16,6 +17,14 @@ async function buildHomeData(req) {
     console.error("Lỗi load pendingRequests:", err.message);
   }
 
+  // 🔥 NEW: lấy map số tin nhắn chưa đọc theo từng friend
+  let unreadCounts = {};
+  try {
+    unreadCounts = await UnreadService.getUnreadCountsByFriend(req.user._id);
+  } catch (err) {
+    console.error("Lỗi load unreadCounts:", err.message);
+  }
+
   const flash = req.session.flash || null;
   delete req.session.flash;
 
@@ -25,8 +34,10 @@ async function buildHomeData(req) {
     pendingRequests,
     flash,
     token: req.session.token || null,
+    unreadCounts, // 👈 trả thêm xuống
   };
 }
+
 
 // helper emit tới một user
 function emitToUser(req, username, event, payload) {

@@ -17,7 +17,11 @@
             <% if (user && user.avatarUrl) { %>
               <img src="<%= user.avatarUrl %>" alt="<%= user.displayName %>" />
             <% } else { %>
-              <span><%= user && user.displayName ? user.displayName[0].toUpperCase() : "U" %></span>
+              <span>
+                <%= user && user.displayName
+                  ? user.displayName[0].toUpperCase()
+                  : "U" %>
+              </span>
             <% } %>
           </div>
           <div>
@@ -42,8 +46,24 @@
         <section class="card home-card-add">
           <h2>Kết bạn</h2>
 
+          <!-- Nút bật thông báo (Cách 1) -->
+          <div style="margin-top: 6px; margin-bottom: 10px;">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              onclick="askNotificationPermissionManually()"
+            >
+              🔔 Bật thông báo tin nhắn
+            </button>
+            <div class="muted" style="margin-top: 4px;">
+              Bật lên để nhận thông báo khi có tin nhắn mới.
+            </div>
+          </div>
+
           <% if (flash) { %>
-            <div class="alert <%= flash.type === 'error' ? 'alert-error' : 'alert-success' %>">
+            <div
+              class="alert <%= flash.type === 'error' ? 'alert-error' : 'alert-success' %>"
+            >
               <%= flash.message %>
             </div>
           <% } %>
@@ -53,9 +73,22 @@
             <div class="form-group">
               <label class="muted">Mã kết bạn của bạn:</label>
               <div class="code-box">
-                <span class="code-value">
-                  <%= myFriendCode && myFriendCode.code ? myFriendCode.code : "------" %>
+                <span class="code-value" id="my-friend-code">
+                  <%= myFriendCode && myFriendCode.code
+                    ? myFriendCode.code
+                    : "------" %>
                 </span>
+
+                <!-- 🔥 NÚT COPY MÃ -->
+                <button
+                  type="button"
+                  class="btn btn-secondary btn-copy-code"
+                  onclick="copyFriendCode()"
+                  style="margin-left: 8px;"
+                >
+                  Copy
+                </button>
+
                 <form method="POST" action="/home/friend-code">
                   <button class="btn btn-secondary" type="submit">
                     Tạo mã mới
@@ -77,7 +110,11 @@
           <div style="margin-bottom: 16px">
             <div class="form-group">
               <label class="muted">Nhập mã bạn bè gửi cho bạn:</label>
-              <form class="inline-form" method="POST" action="/home/friend-submit">
+              <form
+                class="inline-form"
+                method="POST"
+                action="/home/friend-submit"
+              >
                 <input
                   class="input"
                   type="text"
@@ -96,14 +133,19 @@
           <!-- LIST YÊU CẦU CHỜ DUYỆT -->
           <div>
             <div
-              style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;"
+              style="
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                margin-bottom: 6px;
+              "
             >
               <span class="muted">Yêu cầu đang chờ bạn duyệt:</span>
             </div>
 
             <div class="requests-list">
               <% if (pendingRequests && pendingRequests.length > 0) { %>
-                <% pendingRequests.forEach(function(req) { %>
+                <% pendingRequests.forEach(function (req) { %>
                   <div class="request-item">
                     <div class="request-main">
                       <div class="avatar">
@@ -114,7 +156,7 @@
                         </span>
                       </div>
                       <div>
-                        <div style="font-size: 13px; font-weight: 600;">
+                        <div style="font-size: 13px; font-weight: 600">
                           <%= req.requester && req.requester.displayName
                                 ? req.requester.displayName
                                 : "Người dùng ẩn danh" %>
@@ -131,13 +173,13 @@
                       <form
                         method="POST"
                         action="/home/friend-requests/<%= req.requestId %>/respond"
-                        style="display:inline"
+                        style="display: inline"
                       >
                         <input type="hidden" name="accept" value="true" />
                         <button
                           type="submit"
                           class="btn btn-primary"
-                          style="padding: 4px 10px; font-size: 12px;"
+                          style="padding: 4px 10px; font-size: 12px"
                         >
                           Đồng ý
                         </button>
@@ -145,13 +187,13 @@
                       <form
                         method="POST"
                         action="/home/friend-requests/<%= req.requestId %>/respond"
-                        style="display:inline"
+                        style="display: inline"
                       >
                         <input type="hidden" name="accept" value="false" />
                         <button
                           type="submit"
                           class="btn btn-secondary"
-                          style="padding: 4px 10px; font-size: 12px;"
+                          style="padding: 4px 10px; font-size: 12px"
                         >
                           Từ chối
                         </button>
@@ -175,19 +217,41 @@
 
           <div class="friends-list">
             <% if (friends && friends.length > 0) { %>
-              <% friends.forEach(function(friend) { %>
-                <div class="friend-item" data-username="<%= friend.username %>">
+              <% friends.forEach(function (friend) { 
+                   var unread = (unreadCounts && unreadCounts[friend._id]) || 0;
+              %>
+                <div
+                  class="friend-item"
+                  data-username="<%= friend.username %>"
+                  data-unread="<%= unread %>"
+                >
                   <div class="friend-main">
                     <div class="avatar">
                       <% if (friend.avatarUrl) { %>
-                        <img src="<%= friend.avatarUrl %>" alt="<%= friend.displayName %>" />
+                        <img
+                          src="<%= friend.avatarUrl %>"
+                          alt="<%= friend.displayName %>"
+                        />
                       <% } else { %>
-                        <span><%= friend.displayName ? friend.displayName[0].toUpperCase() : "F" %></span>
+                        <span>
+                          <%= friend.displayName
+                            ? friend.displayName[0].toUpperCase()
+                            : "F" %>
+                        </span>
                       <% } %>
                     </div>
                     <div class="friend-text">
-                      <span class="friend-name"><%= friend.displayName %></span>
-                      <span class="friend-username">@<%= friend.username %></span>
+                      <span class="friend-name">
+                        <%= friend.displayName %>
+                        <% if (unread > 0) { %>
+                          <span class="badge-unread">
+                            <%= unread > 9 ? "9+" : unread %>
+                          </span>
+                        <% } %>
+                      </span>
+                      <span class="friend-username">
+                        @<%= friend.username %>
+                      </span>
                     </div>
                     <span
                       class="status-dot status-<%= friend.status || 'offline' %>"
@@ -198,7 +262,9 @@
                   <!-- URL chat ẩn username bằng key -->
                   <a
                     class="btn btn-primary btn-link"
-                    href="<%= chatKeys && chatKeys[friend.username] ? '/chat?key=' + chatKeys[friend.username] : '/home' %>"
+                    href="<%= chatKeys && chatKeys[friend.username]
+                      ? '/chat?key=' + chatKeys[friend.username]
+                      : '/home' %>"
                   >
                     Chat
                   </a>
@@ -213,10 +279,8 @@
     </div>
 
     <!-- DATA ẨN ĐỂ JS ĐỌC, TRÁNH EJS CHÈN TRỰC TIẾP VÀO JS -->
-    <div
-      id="home-data"
-      data-current-user='<%- JSON.stringify(user || {}) %>'
-    ></div>
+    <div id="home-data" data-current-user='<%- JSON.stringify(user || {}) %>'>
+    </div>
 
     <!-- SOCKET.IO -->
     <script src="/socket.io/socket.io.js"></script>
@@ -253,8 +317,10 @@
           dot.title = st;
         }
 
+        // ====== SOCKET.IO KHI ĐÃ LOGIN ======
+        var socket = null;
         if (CURRENT_USER && CURRENT_USER.username) {
-          var socket = io();
+          socket = io();
 
           socket.on("connect", function () {
             socket.emit("auth:identify", { username: CURRENT_USER.username });
@@ -278,6 +344,224 @@
             if (!payload || !payload.username) return;
             updateFriendPresence(payload.username, payload.status);
           });
+
+          // 🔥 Realtime UNREAD: tăng badge khi có chat:receive dành cho mình
+          socket.on("chat:receive", function (payload) {
+            if (!payload || !CURRENT_USER || !CURRENT_USER.username) return;
+
+            var me = (CURRENT_USER.username || "").toLowerCase();
+            var from = (payload.from || "").toLowerCase();
+            var to = (payload.to || "").toLowerCase();
+
+            // Chỉ xử lý khi MÌNH là người nhận
+            if (to !== me) return;
+
+            var friendUsername = payload.from;
+            var selector =
+              '.friend-item[data-username="' + friendUsername + '"]';
+            var item = document.querySelector(selector);
+            if (!item) return;
+
+            var currentUnread = parseInt(
+              item.getAttribute("data-unread") || "0",
+              10
+            );
+            if (isNaN(currentUnread)) currentUnread = 0;
+            var newUnread = currentUnread + 1;
+            item.setAttribute("data-unread", String(newUnread));
+
+            var nameEl = item.querySelector(".friend-name");
+            if (!nameEl) return;
+
+            var badge = nameEl.querySelector(".badge-unread");
+            if (!badge) {
+              badge = document.createElement("span");
+              badge.className = "badge-unread";
+              nameEl.appendChild(badge);
+            }
+            badge.textContent = newUnread > 9 ? "9+" : String(newUnread);
+          });
+        }
+
+        // ========== WEB PUSH: REGISTER SERVICE WORKER + SUBSCRIBE (CÁCH 1) ==========
+
+        // SW register giữ lại ở đây để dùng lại
+        var swRegistration = null;
+
+        // helper convert base64URL -> Uint8Array cho applicationServerKey
+        function urlBase64ToUint8Array(base64String) {
+          var padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+          var base64 = (base64String + padding)
+            .replace(/-/g, "+")
+            .replace(/_/g, "/");
+
+          var rawData = window.atob(base64);
+          var outputArray = new Uint8Array(rawData.length);
+
+          for (var i = 0; i < rawData.length; ++i) {
+            outputArray[i] = rawData.charCodeAt(i);
+          }
+          return outputArray;
+        }
+
+        // Hàm subscribe & gửi subscription lên server
+        async function subscribeAndSend(reg) {
+          try {
+            if (!reg) {
+              console.log("❌ Không có service worker registration.");
+              return;
+            }
+
+            // Lấy public key từ backend
+            const resKey = await fetch("/api/push/public-key");
+            if (!resKey.ok) {
+              console.log("❌ Không lấy được VAPID public key.");
+              return;
+            }
+            const keyJson = await resKey.json();
+            const publicKey = keyJson.publicKey;
+            if (!publicKey) {
+              console.log("❌ Vapid public key rỗng.");
+              return;
+            }
+
+            const appServerKey = urlBase64ToUint8Array(publicKey);
+
+            // Kiểm tra đã có subscription chưa
+            let subscription = await reg.pushManager.getSubscription();
+            if (!subscription) {
+              subscription = await reg.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: appServerKey,
+              });
+            }
+
+            console.log("✅ Push Subscription:", subscription);
+
+            // Gửi subscription lên server
+            await fetch("/api/push/subscribe", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                subscription: subscription,
+              }),
+            });
+
+            console.log("✅ Đã gửi subscription lên server.");
+          } catch (err) {
+            console.error("❌ Lỗi subscribeAndSend:", err);
+          }
+        }
+
+        // initPush: chỉ tự subscribe nếu permission đã "granted"
+        async function initPush() {
+          if (
+            !("serviceWorker" in navigator) ||
+            !("PushManager" in window) ||
+            !("Notification" in window)
+          ) {
+            console.log("⚠️ Trình duyệt không hỗ trợ Web Push.");
+            return;
+          }
+
+          try {
+            // Đăng ký service worker (chỉ cần làm 1 lần)
+            swRegistration =
+              swRegistration ||
+              (await navigator.serviceWorker.register("/sw.js"));
+            console.log("✅ Service Worker registered:", swRegistration.scope);
+
+            // Nếu user đã cho phép từ trước -> auto subscribe
+            if (Notification.permission === "granted") {
+              await subscribeAndSend(swRegistration);
+            } else {
+              console.log(
+                "🔔 Notification permission hiện tại:",
+                Notification.permission
+              );
+              // Chưa cho phép -> chờ user bấm nút "Bật thông báo"
+            }
+          } catch (err) {
+            console.error("❌ Lỗi initPush:", err);
+          }
+        }
+
+        // Hàm cho nút "Bật thông báo tin nhắn" gọi
+        async function askNotificationPermissionManually() {
+          if (!("Notification" in window)) {
+            alert("Trình duyệt không hỗ trợ thông báo.");
+            return;
+          }
+
+          // Nếu đã cho phép rồi
+          if (Notification.permission === "granted") {
+            alert("Bạn đã bật thông báo rồi.");
+            // Đảm bảo đã register SW và subscribe
+            await initPush();
+            return;
+          }
+
+          // Nếu đã chặn trước đó
+          if (Notification.permission === "denied") {
+            alert(
+              "Bạn đã chặn thông báo. Hãy vào cài đặt trình duyệt để bật lại quyền thông báo cho trang này."
+            );
+            return;
+          }
+
+          // "default" -> xin quyền
+          const result = await Notification.requestPermission();
+          if (result === "granted") {
+            alert("Đã bật thông báo!");
+            await initPush(); // đăng ký SW + subscribe + gửi lên server
+          } else {
+            alert("Bạn chưa cho phép thông báo.");
+          }
+        }
+
+        // 🔥 HÀM COPY MÃ KẾT BẠN
+        async function copyFriendCode() {
+          var el = document.getElementById("my-friend-code");
+          if (!el) {
+            alert("Không tìm thấy mã kết bạn.");
+            return;
+          }
+
+          var code = (el.textContent || "").trim();
+          if (!code || code === "------") {
+            alert("Chưa có mã để copy. Hãy bấm 'Tạo mã mới' trước.");
+            return;
+          }
+
+          try {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+              await navigator.clipboard.writeText(code);
+            } else {
+              // fallback cũ (rất hiếm khi cần)
+              var temp = document.createElement("textarea");
+              temp.value = code;
+              document.body.appendChild(temp);
+              temp.select();
+              document.execCommand("copy");
+              document.body.removeChild(temp);
+            }
+            alert("Đã copy mã: " + code);
+          } catch (err) {
+            console.error("Lỗi copyFriendCode:", err);
+            alert("Không copy được mã. Thử copy tay nhé.");
+          }
+        }
+
+        // Cho HTML gọi được
+        window.askNotificationPermissionManually =
+          askNotificationPermissionManually;
+        window.copyFriendCode = copyFriendCode;
+
+        // Chỉ init push nếu đã login
+        if (CURRENT_USER && CURRENT_USER.username) {
+          initPush();
         }
       })();
     </script>
