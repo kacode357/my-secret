@@ -3,9 +3,9 @@
 <html lang="vi">
   <head>
     <meta charset="UTF-8" />
-    <title>My Secret</title>
+    <title><%= siteTitle || "My Secret" %></title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="icon" href="/images/logo.png" type="image/png" />
+    <link rel="icon" href="<%= logoUrl || '/images/logo.png' %>" type="image/png" />
     <link rel="stylesheet" href="/styles/main.css" />
     <link rel="stylesheet" href="/styles/chat.css" />
   </head>
@@ -22,12 +22,18 @@
             <% if (peer && peer.avatarUrl) { %>
               <img src="<%= peer.avatarUrl %>" alt="<%= peer.displayName %>" />
             <% } else { %>
-              <span><%= peer && peer.displayName ? peer.displayName[0].toUpperCase() : "P" %></span>
+              <span>
+                <%= peer && peer.displayName ? peer.displayName[0].toUpperCase() : "P" %>
+              </span>
             <% } %>
           </div>
           <div class="peer-text">
-            <span class="peer-name"><%= peer ? peer.displayName : "Người dùng" %></span>
-            <span class="peer-username">@<%= peer ? peer.username : "unknown" %></span>
+            <span class="peer-name">
+              <%= peer ? (peer.displayName || peer.username || "Người dùng") : "Người dùng" %>
+            </span>
+            <span class="peer-username">
+              @<%= peer ? peer.username : "unknown" %>
+            </span>
           </div>
           <span
             class="status-dot peer-status-dot status-<%= peer && peer.status ? peer.status : 'offline' %>"
@@ -87,6 +93,7 @@
 
     <script>
       (function () {
+        // ===== LẤY DATA USER / PEER TỪ DOM =====
         var dataEl = document.getElementById("chat-data");
         var CURRENT_USER = null;
         var PEER_USER = null;
@@ -108,8 +115,10 @@
           }
         }
 
+        // ===== SOCKET.IO KẾT NỐI MẶC ĐỊNH TỚI CÙNG ORIGIN =====
         var socket = io();
 
+        // ===== QUERY ELEMENT =====
         var messagesEl = document.getElementById("messages");
         var alertEl = document.getElementById("chat-alert");
         var formEl = document.getElementById("chat-form");
@@ -118,6 +127,7 @@
         var emojiToggleBtn = document.getElementById("emoji-toggle-btn");
         var typingEl = document.getElementById("typing-indicator");
 
+        // ===== COMMON UI FUNCS =====
         function showError(msg) {
           if (!alertEl) return;
           alertEl.style.display = "block";
@@ -138,11 +148,10 @@
         function appendMessage(msg) {
           if (!messagesEl) return;
 
+          var currentUsername = CURRENT_USER && CURRENT_USER.username;
           var isMe =
-            msg.from === (CURRENT_USER && CURRENT_USER.username) ||
-            (msg.sender &&
-              msg.sender.username ===
-                (CURRENT_USER && CURRENT_USER.username));
+            msg.from === currentUsername ||
+            (msg.sender && msg.sender.username === currentUsername);
 
           var row = document.createElement("div");
           row.className = "bubble-row " + (isMe ? "me" : "other");
@@ -162,6 +171,7 @@
         }
 
         function renderHistory(list) {
+          if (!messagesEl) return;
           messagesEl.innerHTML = "";
           (list || []).forEach(function (m) {
             appendMessage({
@@ -216,13 +226,13 @@
           });
 
           emojiPicker.on("emoji", function (selection) {
-            var emojiChar = selection && selection.emoji ? selection.emoji : selection;
+            var emojiChar =
+              selection && selection.emoji ? selection.emoji : selection;
             insertEmojiIntoInput(emojiChar);
           });
         }
 
-        // ===== IS TYPING (CLIENT) =====
-        var typingTimeout = null;
+        // ===== IS TYPING (CLIENT) - BẢN MỚI =====
         var isTyping = false;
 
         function emitTyping(isTypingFlag) {
@@ -234,30 +244,27 @@
           });
         }
 
+        // Đồng bộ trạng thái typing dựa trên nội dung ô input
+        function syncTypingState() {
+          if (!inputEl) return;
+          var text = inputEl.value;
+
+          // Có chữ & trước đó chưa báo typing -> bật
+          if (text && !isTyping) {
+            isTyping = true;
+            emitTyping(true);
+          }
+
+          // Hết chữ & trước đó đang typing -> tắt
+          if (!text && isTyping) {
+            isTyping = false;
+            emitTyping(false);
+          }
+        }
+
         if (inputEl) {
           inputEl.addEventListener("input", function () {
-            if (!CURRENT_USER || !PEER_USER) return;
-            var text = inputEl.value;
-
-            if (text && !isTyping) {
-              isTyping = true;
-              emitTyping(true);
-            }
-
-            if (!text && isTyping) {
-              isTyping = false;
-              emitTyping(false);
-            }
-
-            if (typingTimeout) clearTimeout(typingTimeout);
-            if (text) {
-              typingTimeout = setTimeout(function () {
-                if (isTyping) {
-                  isTyping = false;
-                  emitTyping(false);
-                }
-              }, 1500); // 1.5s không gõ nữa => hết typing
-            }
+            syncTypingState();
           });
 
           inputEl.addEventListener("blur", function () {
@@ -273,14 +280,15 @@
           if (flag) {
             typingEl.style.display = "block";
             typingEl.textContent =
-              (PEER_USER && (PEER_USER.displayName || PEER_USER.username)) +
+              (PEER_USER &&
+                (PEER_USER.displayName || PEER_USER.username || "Bạn")) +
               " đang nhập...";
           } else {
             typingEl.style.display = "none";
           }
         }
 
-      socket.on("chat:typing", function (payload) {
+        socket.on("chat:typing", function (payload) {
           if (!CURRENT_USER || !PEER_USER || !payload) return;
 
           var from = (payload.from || "").toLowerCase();
@@ -290,7 +298,6 @@
 
           // Peer đang gõ cho mình
           var isForThisChat = from === peerName && to === meName;
-
           if (!isForThisChat) return;
 
           showPeerTyping(!!payload.isTyping);
@@ -343,16 +350,20 @@
           );
         });
 
+        // ===== NHẬN TIN NHẮN =====
         socket.on("chat:receive", function (payload) {
-          if (!CURRENT_USER || !PEER_USER) return;
+          if (!CURRENT_USER || !PEER_USER || !payload) return;
+
           var inThisChat =
             (payload.from === CURRENT_USER.username &&
               payload.to === PEER_USER.username) ||
             (payload.to === CURRENT_USER.username &&
               payload.from === PEER_USER.username);
+
           if (!inThisChat) return;
+
           appendMessage(payload);
-          // khi nhận tin nhắn => chắc chắn peer không còn "đang nhập"
+          // Khi đã nhận tin => peer chắc chắn không còn được coi là "đang nhập" cho msg cũ
           showPeerTyping(false);
         });
 
@@ -362,6 +373,7 @@
           );
         });
 
+        // ===== GỬI TIN NHẮN =====
         if (formEl && inputEl) {
           formEl.addEventListener("submit", function (e) {
             e.preventDefault();
@@ -379,7 +391,7 @@
             });
 
             inputEl.value = "";
-            // gửi xong => không còn typing
+            // Gửi xong => không còn typing
             if (isTyping) {
               isTyping = false;
               emitTyping(false);
