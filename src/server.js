@@ -16,12 +16,11 @@ const initSocket = require("./realtime/socket");
 
 const app = express();
 
-const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN || "http://localhost:8080";
-
 // --- CONFIG GLOBAL CHO VIEW ---
 app.locals.siteTitle = "My Secret"; // title cho tab trình duyệt
 app.locals.logoUrl = "/images/logo.png"; // đường dẫn logo / favicon
 
+// 🔹 GIỮ NGUYÊN STATIC Y CHANG CỦA MÀY
 // public ngoài root (../public)
 app.use(express.static(path.join(__dirname, "..", "public")));
 
@@ -30,12 +29,7 @@ app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "ejs");
 
 // ========== MIDDLEWARE CHUNG ==========
-app.use(
-  cors({
-    origin: CLIENT_ORIGIN,
-    credentials: true,
-  })
-);
+app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
@@ -43,7 +37,7 @@ app.use(cookieParser());
 // static files (css/js/img) TRONG src/public (nếu mày có)
 app.use(express.static(path.join(__dirname, "public")));
 
-// ========== SESSION CHO UI ==========
+// ========== SESSION CHO UI (THÊM MONGODB STORE) ==========
 app.use(
   session({
     secret: process.env.SESSION_SECRET || "dev-session-secret",
@@ -58,7 +52,7 @@ app.use(
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 ngày
       httpOnly: true,
       sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
+      secure: process.env.NODE_ENV === "production", // nếu dùng https ở prod thì true
     },
   })
 );
@@ -86,14 +80,20 @@ app.use(async (req, res, next) => {
 app.use("/", uiRoutes);
 app.use("/api", apiRoutes);
 
-// ========== EXPORT (nếu mày cần dùng làm handler) ==========
+// ========== EXPORT CHO VERCEL / PRODUCTION ==========
 module.exports = app;
 
-// ========== HTTP + SOCKET.IO ==========
-const PORT = process.env.PORT || 8080;
-const server = http.createServer(app);
-initSocket(server, app, { clientOrigin: CLIENT_ORIGIN });
+// ========== SOCKET.IO CHO LOCAL DEV ==========
+if (process.env.NODE_ENV !== "production") {
+  const PORT = process.env.PORT || 8080;
 
-server.listen(PORT, () => {
-  console.log(`🚀 Server đang chạy tại http://localhost:${PORT}`);
-});
+  const server = http.createServer(app);
+
+  initSocket(server, app);
+
+  server.listen(PORT, () => {
+    console.log(`🚀 Server đang chạy tại http://localhost:${PORT}`);
+    console.log(`🔑 UI Login: http://localhost:${PORT}/login`);
+    console.log(`🏠 UI Home:  http://localhost:${PORT}/home`);
+  });
+}

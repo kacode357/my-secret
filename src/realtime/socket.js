@@ -4,6 +4,10 @@ const ChatRealtimeService = require("../services/chatRealtime.service");
 const FriendService = require("../services/friend.service");
 const UserService = require("../services/user.service");
 
+/**
+ * onlineUsers: Map<usernameLowerCase, Set<socketId>>
+ * để controller có thể lấy từ app.get("onlineUsers")
+ */
 function createOnlineUsersMap() {
   const map = new Map();
 
@@ -36,12 +40,10 @@ function createOnlineUsersMap() {
   return { map, add, remove, get };
 }
 
-function initSocket(server, app, opts = {}) {
-  const clientOrigin = opts.clientOrigin || process.env.CLIENT_ORIGIN || "*";
-
+function initSocket(server, app) {
   const io = new Server(server, {
     cors: {
-      origin: clientOrigin,
+      origin: process.env.BASE_URL || "*",
       methods: ["GET", "POST"],
       credentials: true,
     },
@@ -65,8 +67,10 @@ function initSocket(server, app, opts = {}) {
         onlineUsers.add(uname, socket.id);
         console.log("✅ identify:", uname, "=>", socket.id);
 
+        // cập nhật DB: online
         const user = await UserService.setOnline(uname);
 
+        // broadcast presence
         io.emit("presence:update", {
           username: user ? user.username : uname,
           status: "online",
@@ -142,15 +146,20 @@ function initSocket(server, app, opts = {}) {
       try {
         if (!from || !to) return;
 
-        const payload = { from, to, isTyping: !!isTyping };
+        const payload = {
+          from,
+          to,
+          isTyping: !!isTyping,
+        };
 
+        // Đơn giản: broadcast giống chat:receive, client tự lọc
         io.emit("chat:typing", payload);
       } catch (err) {
         console.error("❌ Lỗi chat:typing:", err.message);
       }
     });
 
-    // ========== FRIEND REQUEST ==========
+    // ========== FRIEND REQUEST (tuỳ mày dùng hay không) ==========
     socket.on("friend:getPending", async (data, cb) => {
       const username = socket.data.username;
       if (!username) {
