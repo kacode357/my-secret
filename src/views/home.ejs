@@ -72,6 +72,7 @@
           <div style="margin-bottom: 16px; margin-top: 8px;">
             <div class="form-group">
               <label class="muted">Mã kết bạn của bạn:</label>
+
               <div class="code-box">
                 <span class="code-value" id="my-friend-code">
                   <%= myFriendCode && myFriendCode.code
@@ -79,28 +80,33 @@
                     : "------" %>
                 </span>
 
-                <!-- 🔥 NÚT COPY MÃ -->
-                <button
-                  type="button"
-                  class="btn btn-secondary btn-copy-code"
-                  onclick="copyFriendCode()"
-                  style="margin-left: 8px;"
-                >
-                  Copy
-                </button>
+                <!-- 🔥 NÚT COPY CHỈ HIỆN KHI ĐÃ CÓ MÃ -->
+                <% if (myFriendCode && myFriendCode.code) { %>
+                  <button
+                    type="button"
+                    class="btn btn-primary btn-copy-code"
+                    onclick="copyFriendCode()"
+                    style="margin-left: 8px;"
+                  >
+                    📋 Copy mã
+                  </button>
+                <% } %>
 
+                <!-- Nút tạo / tạo lại mã luôn luôn hiện -->
                 <form method="POST" action="/home/friend-code">
                   <button class="btn btn-secondary" type="submit">
-                    Tạo mã mới
+                    <%= myFriendCode && myFriendCode.code ? "Tạo mã mới" : "Tạo mã" %>
                   </button>
                 </form>
               </div>
-              <div class="muted">
+
+              <div class="muted" style="margin-top: 4px;">
                 <% if (myFriendCode && myFriendCode.expiresAt) { %>
                   Hết hạn lúc:
                   <%= new Date(myFriendCode.expiresAt).toLocaleString() %>
                 <% } else { %>
-                  Chưa tạo mã nào.
+                  Chưa có mã. Bấm <strong>Tạo mã</strong> để tạo và hiện nút
+                  <strong>Copy mã</strong>.
                 <% } %>
               </div>
             </div>
@@ -531,7 +537,7 @@
 
           var code = (el.textContent || "").trim();
           if (!code || code === "------") {
-            alert("Chưa có mã để copy. Hãy bấm 'Tạo mã mới' trước.");
+            alert("Chưa có mã để copy. Hãy bấm 'Tạo mã' trước.");
             return;
           }
 

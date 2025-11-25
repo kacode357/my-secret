@@ -81,61 +81,73 @@ class ChatRealtimeService {
   /**
    * Lấy lịch sử 1-1 (limit tin gần nhất)
    */
-  static async getDirectHistory({ fromUsername, toUsername, limit = 20 }) {
-    const [fromUser, toUser] = await Promise.all([
-      User.findOne({ username: fromUsername.toLowerCase().trim() }),
-      User.findOne({ username: toUsername.toLowerCase().trim() }),
-    ]);
 
-    if (!fromUser || !toUser) {
-      throw new Error("User không tồn tại");
-    }
+static async getDirectHistory({ fromUsername, toUsername, limit = 20 }) {
+  const [fromUser, toUser] = await Promise.all([
+    User.findOne({ username: fromUsername.toLowerCase().trim() }),
+    User.findOne({ username: toUsername.toLowerCase().trim() }),
+  ]);
 
-    // Nếu muốn, cũng check bạn bè ở đây (optional)
-    await assertFriends(fromUser, toUser);
+  if (!fromUser || !toUser) {
+    throw new Error("User không tồn tại");
+  }
 
-    const conversation = await Conversation.findOne({
-      type: "direct",
-      members: { $all: [fromUser._id, toUser._id], $size: 2 },
-      isDeleted: false,
-    });
+  await assertFriends(fromUser, toUser);
 
-    if (!conversation) {
-      return {
-        conversationId: null,
-        messages: [],
-      };
-    }
+  const conversation = await Conversation.findOne({
+    type: "direct",
+    members: { $all: [fromUser._id, toUser._id], $size: 2 },
+    isDeleted: false,
+  });
 
-    const docs = await Message.find({
-      conversation: conversation._id,
-      isDeleted: false,
-    })
-      .sort({ createdAt: -1 })
-      .limit(limit)
-      .populate("sender", "username displayName avatarUrl");
-
-    // đảo lại cho đúng thứ tự cũ -> mới
-    const messages = docs
-      .reverse()
-      .map((m) => ({
-        id: m._id,
-        content: m.content,
-        at: m.createdAt,
-        status: m.status,
-        sender: {
-          id: m.sender._id,
-          username: m.sender.username,
-          displayName: m.sender.displayName,
-          avatarUrl: m.sender.avatarUrl,
-        },
-      }));
-
+  if (!conversation) {
     return {
-      conversationId: conversation._id,
-      messages,
+      conversationId: null,
+      messages: [],
     };
   }
+
+  const docs = await Message.find({
+    conversation: conversation._id,
+    isDeleted: false,
+  })
+    .sort({ createdAt: -1 })
+    .limit(limit)
+    .populate("sender", "username displayName avatarUrl");
+
+  // 🔥 Mark các tin do thằng kia gửi cho mình là đã seen
+  await Message.updateMany(
+    {
+      conversation: conversation._id,
+      sender: { $ne: fromUser._id },   // tin DO BẠN gửi
+      seenBy: { $ne: fromUser._id },   // mình chưa seen
+    },
+    {
+      $addToSet: { seenBy: fromUser._id },
+    }
+  );
+
+  const messages = docs
+    .reverse()
+    .map((m) => ({
+      id: m._id,
+      content: m.content,
+      at: m.createdAt,
+      status: m.status,
+      sender: {
+        id: m.sender._id,
+        username: m.sender.username,
+        displayName: m.sender.displayName,
+        avatarUrl: m.sender.avatarUrl,
+      },
+    }));
+
+  return {
+    conversationId: conversation._id,
+    messages,
+  };
+}
+
 }
 
 module.exports = ChatRealtimeService;

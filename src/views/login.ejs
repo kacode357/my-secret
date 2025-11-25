@@ -1,4 +1,3 @@
-<!-- File: src/views/login.ejs -->
 <!DOCTYPE html>
 <html lang="vi">
   <head>
@@ -17,7 +16,7 @@
         <div class="login-error"><%= error %></div>
       <% } %>
 
-      <form method="POST" action="/login">
+      <form id="loginForm" method="POST" action="/login">
         <div class="login-field">
           <label class="login-label" for="identifier">Username hoặc Email</label>
           <input
@@ -44,6 +43,7 @@
 
         <button
           type="submit"
+          id="btnLogin"
           class="btn btn-primary btn-block"
           style="margin-top: 6px;"
         >
@@ -51,5 +51,31 @@
         </button>
       </form>
     </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function() {
+        const form = document.getElementById("loginForm");
+        const btn = document.getElementById("btnLogin");
+
+        form.addEventListener("submit", function(e) {
+          // Kiểm tra xem form có hợp lệ không (đã điền đủ thông tin chưa)
+          if (form.checkValidity()) {
+            // Đổi nội dung nút
+            btn.innerHTML = 'Đang đăng nhập...';
+            
+            // Vô hiệu hóa nút để chống spam click
+            // Lưu ý: Việc disable sẽ diễn ra sau khi sự kiện submit bắt đầu
+            // nên form vẫn sẽ được gửi đi bình thường.
+            btn.style.opacity = "0.7";
+            btn.style.cursor = "not-allowed";
+            
+            // Sử dụng setTimeout nhỏ để đảm bảo form submit được kích hoạt trước khi disable hẳn
+            setTimeout(() => {
+                btn.disabled = true;
+            }, 0);
+          }
+        });
+      });
+    </script>
   </body>
 </html>

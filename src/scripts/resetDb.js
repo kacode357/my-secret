@@ -15,81 +15,90 @@ async function seedUsers() {
     const passwordHash = await bcrypt.hash(plainPassword, 10);
 
     const usersData = [
-      {
-        username: "phamanhkhoa5829",
-        displayName: "Pham Anh Khoa 5829",
-        email: "phamanhkhoa5829@example.com",
-        avatarUrl: "",
-        passwordHash,
-        status: "offline",
-      },
-      {
-        username: "luukaka9103",
-        displayName: "Luu Kaka 9103",
-        email: "luukaka9103@example.com",
-        avatarUrl: "",
-        passwordHash,
-        status: "offline",
-      },
-      {
-        username: "lenguyenquocbinh2741",
-        displayName: "Le Nguyen Quoc Binh 2741",
-        email: "lenguyenquocbinh2741@example.com",
-        avatarUrl: "",
-        passwordHash,
-        status: "offline",
-      },
-      {
-        username: "nguyenhungkhuong8392",
-        displayName: "Nguyen Hung Khuong 8392",
-        email: "nguyenhungkhuong8392@example.com",
-        avatarUrl: "",
-        passwordHash,
-        status: "offline",
-      },
-      {
-        username: "lethianhngoc4055",
-        displayName: "Le Thi Anh Ngoc 4055",
-        email: "lethianhngoc4055@example.com",
-        avatarUrl: "",
-        passwordHash,
-        status: "offline",
-      },
-      {
-        username: "trankimchi1209",
-        displayName: "Tran Kim Chi 1209",
-        email: "trankimchi1209@example.com",
-        avatarUrl: "",
-        passwordHash,
-        status: "offline",
-      },
-      {
-        username: "phankangmin6714",
-        displayName: "Phan Kang Min 6714",
-        email: "phankangmin6714@example.com",
-        avatarUrl: "",
-        passwordHash,
-        status: "offline",
-      },
-      // 🔥 User mới 1
-      {
-        username: "vodangkhoa1256",
-        displayName: "Vo Dang Khoa 1256",
-        email: "vodangkhoa1256@example.com",
-        avatarUrl: "",
-        passwordHash,
-        status: "offline",
-      },
-      // 🔥 User mới 2
-      {
-        username: "luuhoaihongngoc8142",
-        displayName: "Luu Hoai Hong Ngoc 8142",
-        email: "luuhoaihongngoc8142@example.com",
-        avatarUrl: "",
-        passwordHash,
-        status: "offline",
-      },
-    ];
+  {
+    username: "phamanhkhoa5829",
+    displayName: "Pham Anh Khoa 5829",
+    email: "phamanhkhoa5829@example.com",
+    avatarUrl: "",
+    passwordHash,
+    status: "offline",
+  },
+  {
+    username: "luukaka9103",
+    displayName: "Luu Kaka 9103",
+    email: "luukaka9103@example.com",
+    avatarUrl: "",
+    passwordHash,
+    status: "offline",
+  },
+  {
+    username: "lenguyenquocbinh2741",
+    displayName: "Le Nguyen Quoc Binh 2741",
+    email: "lenguyenquocbinh2741@example.com",
+    avatarUrl: "",
+    passwordHash,
+    status: "offline",
+  },
+  {
+    username: "nguyenhungkhuong8392",
+    displayName: "Nguyen Hung Khuong 8392",
+    email: "nguyenhungkhuong8392@example.com",
+    avatarUrl: "",
+    passwordHash,
+    status: "offline",
+  },
+  {
+    username: "lethianhngoc4055",
+    displayName: "Le Thi Anh Ngoc 4055",
+    email: "lethianhngoc4055@example.com",
+    avatarUrl: "",
+    passwordHash,
+    status: "offline",
+  },
+  {
+    username: "trankimchi1209",
+    displayName: "Tran Kim Chi 1209",
+    email: "trankimchi1209@example.com",
+    avatarUrl: "",
+    passwordHash,
+    status: "offline",
+  },
+  {
+    username: "phankangmin6714",
+    displayName: "Phan Kang Min 6714",
+    email: "phankangmin6714@example.com",
+    avatarUrl: "",
+    passwordHash,
+    status: "offline",
+  },
+  // 🔥 User mới 1
+  {
+    username: "vodangkhoa1256",
+    displayName: "Vo Dang Khoa 1256",
+    email: "vodangkhoa1256@example.com",
+    avatarUrl: "",
+    passwordHash,
+    status: "offline",
+  },
+  // 🔥 User mới 2
+  {
+    username: "luuhoaihongngoc8142",
+    displayName: "Luu Hoai Hong Ngoc 8142",
+    email: "luuhoaihongngoc8142@example.com",
+    avatarUrl: "",
+    passwordHash,
+    status: "offline",
+  },
+  // 🔥 User mới 3 (Mới thêm)
+  {
+    username: "nguyenletanphat7126",
+    displayName: "Nguyen Le Tan Phat 7126",
+    email: "nguyenletanphat7126@example.com",
+    avatarUrl: "",
+    passwordHash,
+    status: "offline",
+  },
+];
 
     // Dùng upsert để:
     // - Nếu username chưa có -> tạo mới
