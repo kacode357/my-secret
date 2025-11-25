@@ -5,13 +5,17 @@
     <meta charset="UTF-8" />
     <title><%= siteTitle || "My Secret" %></title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="icon" href="<%= logoUrl || '/images/logo.png' %>" type="image/png" />
+    <link
+      rel="icon"
+      href="<%= logoUrl || '/images/logo.png' %>"
+      type="image/png"
+    />
     <link rel="stylesheet" href="/styles/main.css" />
     <link rel="stylesheet" href="/styles/chat.css" />
   </head>
-  <body>
+  <body class="chat-body">
     <div class="chat-shell">
-      <header>
+      <header class="chat-header">
         <button class="back-link" onclick="window.location.href='/home'">
           <span>←</span>
           <span>Về trang chủ</span>
@@ -23,13 +27,17 @@
               <img src="<%= peer.avatarUrl %>" alt="<%= peer.displayName %>" />
             <% } else { %>
               <span>
-                <%= peer && peer.displayName ? peer.displayName[0].toUpperCase() : "P" %>
+                <%= peer && peer.displayName
+                  ? peer.displayName[0].toUpperCase()
+                  : "P" %>
               </span>
             <% } %>
           </div>
           <div class="peer-text">
             <span class="peer-name">
-              <%= peer ? (peer.displayName || peer.username || "Người dùng") : "Người dùng" %>
+              <%= peer
+                ? peer.displayName || peer.username || "Người dùng"
+                : "Người dùng" %>
             </span>
             <span class="peer-username">
               @<%= peer ? peer.username : "unknown" %>
@@ -43,17 +51,29 @@
       </header>
 
       <section class="chat-main">
-        <div id="chat-alert" class="alert alert-error" style="display:none"></div>
+        <!-- ALERT -->
+        <div
+          id="chat-alert"
+          class="alert alert-error"
+          style="display: none"
+        ></div>
 
+        <!-- KHUNG MESSAGE CỐ ĐỊNH, CUỘN BÊN TRONG -->
         <div id="messages" class="messages"></div>
 
         <!-- typing indicator -->
         <div
           id="typing-indicator"
           class="typing-indicator"
-          style="display:none; font-size:12px; color:#6b7280; padding:0 4px 4px 4px;"
+          style="
+            display: none;
+            font-size: 12px;
+            color: #6b7280;
+            padding: 0 4px 4px 4px;
+          "
         ></div>
 
+        <!-- INPUT BAR CỐ ĐỊNH DƯỚI CÙNG -->
         <form id="chat-form" class="input-row">
           <input
             id="message-input"
@@ -63,7 +83,7 @@
             placeholder="Nhập tin nhắn..."
           />
 
-          <!-- NÚT EMOJI ĐỂ SAU Ô INPUT -->
+          <!-- NÚT EMOJI -->
           <button
             type="button"
             id="emoji-toggle-btn"
@@ -232,7 +252,7 @@
           });
         }
 
-        // ===== IS TYPING (CLIENT) - BẢN MỚI =====
+        // ===== IS TYPING (CLIENT) =====
         var isTyping = false;
 
         function emitTyping(isTypingFlag) {
@@ -244,18 +264,15 @@
           });
         }
 
-        // Đồng bộ trạng thái typing dựa trên nội dung ô input
         function syncTypingState() {
           if (!inputEl) return;
           var text = inputEl.value;
 
-          // Có chữ & trước đó chưa báo typing -> bật
           if (text && !isTyping) {
             isTyping = true;
             emitTyping(true);
           }
 
-          // Hết chữ & trước đó đang typing -> tắt
           if (!text && isTyping) {
             isTyping = false;
             emitTyping(false);
@@ -296,7 +313,6 @@
           var peerName = (PEER_USER.username || "").toLowerCase();
           var meName = (CURRENT_USER.username || "").toLowerCase();
 
-          // Peer đang gõ cho mình
           var isForThisChat = from === peerName && to === meName;
           if (!isForThisChat) return;
 
@@ -363,7 +379,6 @@
           if (!inThisChat) return;
 
           appendMessage(payload);
-          // Khi đã nhận tin => peer chắc chắn không còn được coi là "đang nhập" cho msg cũ
           showPeerTyping(false);
         });
 
@@ -391,7 +406,6 @@
             });
 
             inputEl.value = "";
-            // Gửi xong => không còn typing
             if (isTyping) {
               isTyping = false;
               emitTyping(false);

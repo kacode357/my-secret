@@ -1,30 +1,40 @@
 /* File: public/styles/chat.css */
 
+/* Đảm bảo html/body full height để dùng 100vh ngon */
+html,
 body {
-  background: var(--color-bg);
-  color: #111827;
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
+  height: 100%;
 }
 
-/* Shell chat bao toàn bộ header + khung trắng */
-.chat-shell {
-  width: 100%;
-  max-width: 1100px;        /* 🔥 nới rộng khung trên desktop */
-  margin: 0 auto;
-  padding: 10px 14px;
-  height: 100vh;
+/* Body riêng cho trang chat */
+body.chat-body {
+  margin: 0;
+  background: var(--color-bg);
+  color: #111827;
   display: flex;
   flex-direction: column;
+  align-items: center;
+  overflow: hidden;           /* ❗ Không cho scroll toàn page */
+}
+
+/* Shell chat: cao đúng 100vh, khung giữa màn hình */
+.chat-shell {
+  width: 100%;
+  max-width: 1100px;
+  height: 100vh;              /* ❗ KHÓA CỨNG chiều cao = viewport */
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
 }
 
 /* Header chat */
-header {
+.chat-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 8px 0 12px;
+  flex-shrink: 0;             /* không cho header bị co */
 }
 
 .back-link {
@@ -54,6 +64,20 @@ header {
 .peer-info .avatar {
   width: 36px;
   height: 36px;
+  border-radius: 999px;
+  background: #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.peer-info .avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .peer-text {
@@ -71,9 +95,10 @@ header {
   color: #6b7280;
 }
 
-/* Khung chat trắng */
+/* Khung chat trắng chiếm toàn bộ phần còn lại */
 .chat-main {
-  flex: 1;
+  flex: 1;                     /* chiếm hết phần còn lại của chat-shell */
+  min-height: 0;               /* ❗ cho phép co để con bên trong scroll */
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -81,12 +106,14 @@ header {
   border-radius: var(--radius-lg);
   padding: 10px;
   box-shadow: 0 10px 25px rgba(15, 23, 42, 0.06);
+  box-sizing: border-box;
 }
 
-/* Vùng messages */
+/* Vùng messages: cố định, chỉ chỗ này được scroll */
 .messages {
-  flex: 1;
-  overflow-y: auto;
+  flex: 1;                     /* chiếm hết phần trống trong chat-main */
+  min-height: 0;               /* ❗ rất quan trọng để scroll */
+  overflow-y: auto;            /* scroll trong khung messages */
   padding: 6px 4px;
   display: flex;
   flex-direction: column;
@@ -142,13 +169,14 @@ header {
   margin-left: 6px;
 }
 
-/* Input row */
+/* Input row cố định dưới cùng khung trắng */
 .input-row {
   display: flex;
   align-items: center;
   gap: 8px;
   padding-top: 4px;
   border-top: 1px solid #e5e7eb;
+  flex-shrink: 0;               /* không cho input bị co */
 }
 
 .input {
@@ -165,7 +193,7 @@ header {
   box-shadow: 0 0 0 2px var(--color-primary-soft);
 }
 
-/* Nút emoji lấy từ thư viện Emoji Button */
+/* Nút emoji */
 .emoji-toggle-btn {
   border: none;
   background: transparent;
@@ -180,7 +208,7 @@ header {
 
 /* --------- RESPONSIVE --------- */
 
-/* Tablet: thu padding lại chút */
+/* Tablet */
 @media (max-width: 1024px) {
   .chat-shell {
     max-width: 768px;
@@ -200,10 +228,10 @@ header {
 @media (max-width: 640px) {
   .chat-shell {
     max-width: 100%;
-  padding: 6px;
+    padding: 6px;
   }
 
-  header {
+  .chat-header {
     padding: 4px 0 8px;
   }
 
